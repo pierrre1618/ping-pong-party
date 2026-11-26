@@ -268,6 +268,7 @@ function gamePlayersList(g) {
 }
 
 function hostOnJoin(id, meta) {
+  if (S.lobby.some((p) => p.id === id)) return true;
   if (S.lobby.length >= MAX_PLAYERS) { S.net.sendTo(id, { type: 'full' }); return false; }
   const p = { id, name: cleanName(meta.name), color: freeColor(meta.color), hat: HATS.some((h) => h.id === meta.hat) ? meta.hat : 'none' };
   S.lobby.push(p);

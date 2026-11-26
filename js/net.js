@@ -56,7 +56,10 @@ export class HostNet {
 
   accept(conn) {
     const id = 'p' + (++this.counter);
+    let opened = false;
     conn.on('open', () => {
+      if (opened) return; // PeerJS can fire 'open' twice for one connection: join only once
+      opened = true;
       this.conns.set(id, conn);
       const ok = this.h.onJoin(id, conn.metadata || {});
       if (!ok) setTimeout(() => conn.close(), 500);
@@ -102,6 +105,7 @@ export class GuestNet {
         else console.warn('peer error', e.type);
       });
       peer.on('open', () => {
+        if (this.conn) return; // 'open' fires again after a broker reconnect: keep the first connection
         const conn = peer.connect(PREFIX + code, { reliable: true, serialization: 'json', metadata: meta });
         this.conn = conn;
         conn.on('open', () => { if (!done) { done = true; clearTimeout(timer); resolve(); } });
